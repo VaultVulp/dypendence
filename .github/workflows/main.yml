@@ -1,0 +1,133 @@
+name: Main
+
+on: [push]
+
+jobs:
+  check-and-test:
+    runs-on: ubuntu-latest
+
+    env:
+      PIPENV_VENV_IN_PROJECT: 1
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Set up Python
+      uses: actions/setup-python@v1
+      with:
+        python-version: 3.8
+
+    - name: Get pip cache
+      uses: actions/cache@v1
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/Pipfile.lock') }}
+
+    - name: Get pipenv cache
+      uses: actions/cache@v1
+      with:
+        path: ~/.cache/pipenv
+        key: ${{ runner.os }}-pipenv-${{ hashFiles('**/Pipfile.lock') }}
+
+    - name: Get venv cache
+      uses: actions/cache@v1
+      id: cache
+      with:
+        path: ./.venv
+        key: ${{ runner.os }}-venv-${{ hashFiles('**/Pipfile.lock') }}
+
+    - name: Set up environment
+      run: |
+        git status
+        python -m pip install --upgrade pip
+        pip install -U pipenv
+
+    - name: Install dependencies
+      if: steps.cache.outputs.cache-hit != 'true'
+      run: pipenv install --dev --deploy
+
+    - name: Reformat files
+      run: |
+        pipenv run fix-isort
+        pipenv run fix-yapf
+
+    - name: Check code style
+      run: pipenv run check-code-style
+
+    - name: Run tests
+      run: pipenv run test --html=report.html --self-contained-html
+
+    - if: always()
+      name: Upload pytest report
+      uses: actions/upload-artifact@v1
+      with:
+        name: pytest report
+        path: report.html
+
+    - name: Check fixtures
+      run: pipenv run check-fixtures
+
+    - name: Config git
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+
+    - name: Commit and push changes
+      if: startsWith(github.ref, 'refs/tags/') == false
+      run: |
+        git commit -a -m "Reformat files" || true
+        git push
+
+    - name: Upload badge
+      if: github.ref == 'refs/heads/develop'
+      run: |
+        pipenv run make-badge
+        pipenv run s3cmd -P -s --mime-type=image/svg+xml --host=$MINIO_HOST --host-bucket=$MINIO_HOST --access_key=$MINIO_KEY --secret_key=$MINIO_SECRET --signature-v2 --no-check-certificate --check-hostname put ./coverage.svg s3://coverage/${GITHUB_REPOSITORY}/coverage.svg
+      env:
+        MINIO_HOST: ${{ secrets.MINIO_HOST }}
+        MINIO_KEY: ${{ secrets.MINIO_KEY }}
+        MINIO_SECRET: ${{ secrets.MINIO_SECRET }}
+
+  build-and-publish-head:
+    runs-on: ubuntu-latest
+    needs: check-and-test
+    if: github.ref == 'refs/heads/develop'
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Build and Publish head Docker image
+      uses: VaultVulp/gp-docker-action@1.1.1
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        image-name: dypendence
+        image-tag: head
+
+  build-and-publish-latest:
+    runs-on: ubuntu-latest
+    needs: check-and-test
+    if: github.ref == 'refs/heads/master'
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Build and Publish latest Docker image
+      uses: VaultVulp/gp-docker-action@1.1.1
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        image-name: dypendence
+
+  build-and-publish-tag:
+    runs-on: ubuntu-latest
+    needs: check-and-test
+    if: startsWith(github.ref, 'refs/tags/')
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Build and Publish Tag Docker image
+      uses: VaultVulp/gp-docker-action@1.1.1
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        image-name: dypendence
+        extract-git-tag: true
