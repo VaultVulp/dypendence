@@ -22,9 +22,7 @@ s3cmd = "*"
 coverage-badge = "*"
 
 [packages]
-click = "*"
 dynaconf = {extras = ["vault"], version = "*"}
-loguru = "*"
 
 [requires]
 python_version = "3.8"
