@@ -1,5 +1,5 @@
 from dynaconf import Dynaconf
-from abc import abstractmethod
+
 
 class DYException(Exception):
     pass
@@ -58,17 +58,21 @@ class DootFactory(DY):
 
 
 class Dooter(DootFactory):
+
     @property
     def value(self):
         return 'Dooter'
 
+
 class Buzz(DootFactory):
+
     @property
     def value(self):
         return 'Buzz'
 
 
 class Fizz(DootFactory):
+
     @property
     def value(self):
         return 'Fizz'
