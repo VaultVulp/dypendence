@@ -1,1 +1,1 @@
-from .dypendence import DY # noqa
+from .dypendence import DY  # noqa
