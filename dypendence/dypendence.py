@@ -1,4 +1,5 @@
 from dynaconf import Dynaconf
+from dynaconf.utils.boxing import DynaBox
 
 
 class DYException(Exception):
@@ -13,72 +14,45 @@ class DYNotFoundException(DYException):
 
 
 class DY:
-    GLOBAL_PREFIX = 'DY'
-    CLASS_PREFIX = None
-    TYPE_POSTFIX = 'TYPE'
-    settings = None
+    GLOBAL_PREFIX: str = 'dy'
+    FACTORY_PREFIX: str = None
+    TYPE_POSTFIX: str = 'type'
+
+    global_settings: Dynaconf = None
+    factory_settings: DynaBox = None
+
+    @classmethod
+    def _get_class_prefix(cls):
+        return None
 
     def __init_subclass__(cls, **kwargs):
-        print(f'Classname: {cls.__name__}')
-        cls.settings = DY.settings.get(cls.__name__)
-        # if not isinstance(cls.CLASS_PREFIX, str):
-        #     raise DYException(f'Class-level variable `PREFIX` in class {cls.__name__} must be a dot separated path')
+        if cls.FACTORY_PREFIX is None:
+            cls.FACTORY_PREFIX = cls.__name__
 
     def __new__(cls, **dynaconf_kwargs):
-        global_settings = Dynaconf(**dynaconf_kwargs)
-        cls.settings = settings = global_settings.get(f'{cls.GLOBAL_PREFIX}.{cls.CLASS_PREFIX}')
+        cls.global_settings: Dynaconf = Dynaconf(**dynaconf_kwargs)
+        cls.factory_settings: DynaBox = cls.global_settings.get(f'{cls.GLOBAL_PREFIX}.{cls.FACTORY_PREFIX}')
+
+        if cls.factory_settings is None:
+            path = f'{cls.GLOBAL_PREFIX}.{cls.FACTORY_PREFIX}'
+            raise DYException(f'Invalid configuration structure: Key `{path.upper()}` not present')
+
+        if not cls.factory_settings.get(cls.TYPE_POSTFIX):
+            path = f'{cls.GLOBAL_PREFIX}.{cls.FACTORY_PREFIX}.{cls.TYPE_POSTFIX}'
+            raise DYException(f'Invalid configuration structure: Key `{path.upper()}` not present')
+
+        requested_classname = str(cls.factory_settings.get(cls.TYPE_POSTFIX)).upper()
 
         subclasses = {klass.__name__.upper(): klass for klass in cls.__subclasses__()}
 
-        if not settings.get(cls.TYPE_POSTFIX):
-            raise DYException(
-                f'Invalid configuration structure: '
-                f'Key `{cls.GLOBAL_PREFIX}.{cls.CLASS_PREFIX}.{cls.TYPE_POSTFIX}` not present'
-            )
-
-        classname = str(settings.get(cls.TYPE_POSTFIX)).upper()
-
-        if classname not in subclasses:
+        if requested_classname not in subclasses:
             raise DYNotFoundException(
-                dependency_name=classname,
+                dependency_name=requested_classname,
                 allowed_values=', '.join(subclasses.keys()),
             )
-        return super().__new__(subclasses[classname])
-
-
-class DootFactory(DY):
-    CLASS_PREFIX = 'DOOT'
-
-    def __new__(cls, *args, **kwargs):
-        return super(DootFactory, cls).__new__(cls, *args, **kwargs)
+        return super().__new__(subclasses[requested_classname])
 
     @property
-    def value(self):
-        raise NotImplemented
-
-
-class Dooter(DootFactory):
-
-    @property
-    def value(self):
-        return 'Dooter'
-
-
-class Buzz(DootFactory):
-
-    @property
-    def value(self):
-        return 'Buzz'
-
-
-class Fizz(DootFactory):
-
-    @property
-    def value(self):
-        return 'Fizz'
-
-
-if __name__ == '__main__':
-    something = DootFactory(loaders=['dynaconf.loaders.env_loader'])
-    print(f'Type: {type(something).__name__}')
-    print(something.value)
+    def settings(self) -> DynaBox:
+        classname = type(self).__name__
+        return self.factory_settings.get(classname, DynaBox(box_settings={}))
