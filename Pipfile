@@ -22,7 +22,7 @@ s3cmd = "*"
 coverage-badge = "*"
 
 [packages]
-dynaconf = {extras = ["vault"], version = "*"}
+dynaconf = "*"
 
 [requires]
 python_version = "3.8"
