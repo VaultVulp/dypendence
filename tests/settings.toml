@@ -1,0 +1,8 @@
+[DY.some_path]
+type = "Buzz"
+
+[DY.some_path.Buzz]
+some_value = "Buzz from settings file"
+
+[DY.some_path.Fizz]
+some_value = "Fizz from settings file"

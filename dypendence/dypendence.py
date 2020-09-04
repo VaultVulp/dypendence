@@ -1,3 +1,5 @@
+from pprint import pprint
+
 from dynaconf import Dynaconf
 from dynaconf.utils.boxing import DynaBox
 
@@ -26,10 +28,6 @@ class DY:
     global_settings: Dynaconf = None
     factory_settings: DynaBox = None
 
-    @classmethod
-    def _get_class_prefix(cls):
-        return None
-
     def __init_subclass__(cls, **kwargs):
         if cls.FACTORY_PREFIX is None:
             cls.FACTORY_PREFIX = cls.__name__
@@ -39,6 +37,7 @@ class DY:
         cls.factory_settings: DynaBox = cls.global_settings.get(f'{cls.GLOBAL_PREFIX}.{cls.FACTORY_PREFIX}')
 
         if cls.factory_settings is None:
+            pprint(dict(cls.global_settings))
             path = f'{cls.GLOBAL_PREFIX}.{cls.FACTORY_PREFIX}'
             raise DYInvalidConfigurationException(path)
 
@@ -50,12 +49,14 @@ class DY:
 
         subclasses = {klass.__name__.upper(): klass for klass in cls.__subclasses__()}
 
-        if requested_classname not in subclasses:
+        requested_class = subclasses.get(requested_classname)
+
+        if not requested_class:
             raise DYNotFoundException(
                 dependency_name=requested_classname,
                 allowed_values=', '.join(subclasses.keys()),
             )
-        return super().__new__(subclasses[requested_classname])
+        return super().__new__(requested_class)
 
     @property
     def settings(self) -> DynaBox:

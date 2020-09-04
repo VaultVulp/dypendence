@@ -13,7 +13,7 @@ class FizzBuzz(DY):
 
     @property
     def value_from_settings(self) -> str:
-        raise NotImplementedError
+        return str(self.settings.some_value)
 
 
 class Buzz(FizzBuzz):
@@ -22,10 +22,6 @@ class Buzz(FizzBuzz):
     def value(self) -> str:
         return 'Buzz Value'
 
-    @property
-    def value_from_settings(self) -> str:
-        return self.settings.settings_value
-
 
 class Fizz(FizzBuzz):
 
@@ -33,31 +29,27 @@ class Fizz(FizzBuzz):
     def value(self) -> str:
         return 'Fizz Value'
 
-    @property
-    def value_from_settings(self) -> str:
-        return self.settings.settings_value
-
 
 def test_buzz_constructor(monkeypatch):
-    monkeypatch.setenv('DYNACONF_DY__SOME_PATH__BUZZ__SETTINGS_VALUE', 'Buzz from dynaconf settings')
+    monkeypatch.setenv('DYNACONF_DY__SOME_PATH__BUZZ__SOME_VALUE', 'Buzz from env')
     monkeypatch.setenv('DYNACONF_DY__SOME_PATH__TYPE', 'Buzz')
 
     buzz = FizzBuzz(loaders=['dynaconf.loaders.env_loader'])
 
     assert isinstance(buzz, Buzz)
     assert buzz.value == 'Buzz Value'
-    assert buzz.value_from_settings == 'Buzz from dynaconf settings'
+    assert buzz.value_from_settings == 'Buzz from env'
 
 
 def test_fizz_constructor(monkeypatch):
-    monkeypatch.setenv('DYNACONF_DY__SOME_PATH__FIZZ__SETTINGS_VALUE', 'Fizz from dynaconf settings')
+    monkeypatch.setenv('DYNACONF_DY__SOME_PATH__FIZZ__SOME_VALUE', 'Fizz from env')
     monkeypatch.setenv('DYNACONF_DY__SOME_PATH__TYPE', 'Fizz')
 
     fizz = FizzBuzz(loaders=['dynaconf.loaders.env_loader'])
 
     assert isinstance(fizz, Fizz)
     assert fizz.value == 'Fizz Value'
-    assert fizz.value_from_settings == 'Fizz from dynaconf settings'
+    assert fizz.value_from_settings == 'Fizz from env'
 
 
 class NotificationService(DY):
@@ -114,3 +106,11 @@ def test_invalid_configuration_exception(monkeypatch):
         FizzBuzz(loaders=['dynaconf.loaders.env_loader'])
 
     assert 'Invalid configuration structure: Key `DY.SOME_PATH.TYPE` is not present' == str(raised_exception.value)
+
+
+def test_init_from_file():
+    buzz = FizzBuzz(settings_files=['./tests/settings.toml'])
+
+    assert isinstance(buzz, Buzz)
+    assert buzz.value == 'Buzz Value'
+    assert buzz.value_from_settings == 'Buzz from settings file'
