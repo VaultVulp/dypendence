@@ -1,8 +1,11 @@
-from dypendence.dypendence import DY
+import pytest
+
+from dypendence import DY
+from dypendence.dypendence import DYInvalidConfigurationException, DYNotFoundException
 
 
 class FizzBuzz(DY):
-    FACTORY_PREFIX = 'SOME_DIFFERENT_PATH'
+    FACTORY_PREFIX = 'SOME_PATH'
 
     @property
     def value(self) -> str:
@@ -36,9 +39,8 @@ class Fizz(FizzBuzz):
 
 
 def test_buzz_constructor(monkeypatch):
-    monkeypatch.setenv('DYNACONF_DY__SOME_DIFFERENT_PATH__FIZZ__SETTINGS_VALUE', 'Fizz from dynaconf settings')
-    monkeypatch.setenv('DYNACONF_DY__SOME_DIFFERENT_PATH__BUZZ__SETTINGS_VALUE', 'Buzz from dynaconf settings')
-    monkeypatch.setenv('DYNACONF_DY__SOME_DIFFERENT_PATH__TYPE', 'Buzz')
+    monkeypatch.setenv('DYNACONF_DY__SOME_PATH__BUZZ__SETTINGS_VALUE', 'Buzz from dynaconf settings')
+    monkeypatch.setenv('DYNACONF_DY__SOME_PATH__TYPE', 'Buzz')
 
     buzz = FizzBuzz(loaders=['dynaconf.loaders.env_loader'])
 
@@ -48,9 +50,8 @@ def test_buzz_constructor(monkeypatch):
 
 
 def test_fizz_constructor(monkeypatch):
-    monkeypatch.setenv('DYNACONF_DY__SOME_DIFFERENT_PATH__FIZZ__SETTINGS_VALUE', 'Fizz from dynaconf settings')
-    monkeypatch.setenv('DYNACONF_DY__SOME_DIFFERENT_PATH__BUZZ__SETTINGS_VALUE', 'Buzz from dynaconf settings')
-    monkeypatch.setenv('DYNACONF_DY__SOME_DIFFERENT_PATH__TYPE', 'Fizz')
+    monkeypatch.setenv('DYNACONF_DY__SOME_PATH__FIZZ__SETTINGS_VALUE', 'Fizz from dynaconf settings')
+    monkeypatch.setenv('DYNACONF_DY__SOME_PATH__TYPE', 'Fizz')
 
     fizz = FizzBuzz(loaders=['dynaconf.loaders.env_loader'])
 
@@ -90,3 +91,26 @@ def test_notification_service_constructor(monkeypatch):
 
     assert isinstance(sms_service, SMSService)
     assert sms_service.send_notification() == 'Sent SMS Notification'
+
+
+def test_not_found_exception(monkeypatch):
+    monkeypatch.setenv('DYNACONF_DY__SOME_PATH__TYPE', 'NotFizzNotBuzz')
+
+    with pytest.raises(DYNotFoundException) as raised_exception:
+        FizzBuzz(loaders=['dynaconf.loaders.env_loader'])
+
+    assert 'Dependency NOTFIZZNOTBUZZ was not found' in str(raised_exception.value)
+
+
+def test_invalid_configuration_exception(monkeypatch):
+    with pytest.raises(DYInvalidConfigurationException) as raised_exception:
+        FizzBuzz(loaders=['dynaconf.loaders.env_loader'])
+
+    assert 'Invalid configuration structure: Key `DY.SOME_PATH` is not present' == str(raised_exception.value)
+
+    monkeypatch.setenv('DYNACONF_DY__SOME_PATH__WRONG_ELEMENT', 'NotFizzNotBuzz')
+
+    with pytest.raises(DYInvalidConfigurationException) as raised_exception:
+        FizzBuzz(loaders=['dynaconf.loaders.env_loader'])
+
+    assert 'Invalid configuration structure: Key `DY.SOME_PATH.TYPE` is not present' == str(raised_exception.value)

@@ -6,11 +6,16 @@ class DYException(Exception):
     pass
 
 
+class DYInvalidConfigurationException(DYException):
+
+    def __init__(self, required_path: str):
+        super().__init__(f'Invalid configuration structure: Key `{required_path.upper()}` is not present')
+
+
 class DYNotFoundException(DYException):
 
     def __init__(self, dependency_name: str, allowed_values: str):
-        message = f'Dependency {dependency_name} was not found. Available dependencies are: {allowed_values}.'
-        super().__init__(message)
+        super().__init__(f'Dependency {dependency_name} was not found: available dependencies are {allowed_values}')
 
 
 class DY:
@@ -35,11 +40,11 @@ class DY:
 
         if cls.factory_settings is None:
             path = f'{cls.GLOBAL_PREFIX}.{cls.FACTORY_PREFIX}'
-            raise DYException(f'Invalid configuration structure: Key `{path.upper()}` not present')
+            raise DYInvalidConfigurationException(path)
 
         if not cls.factory_settings.get(cls.TYPE_POSTFIX):
             path = f'{cls.GLOBAL_PREFIX}.{cls.FACTORY_PREFIX}.{cls.TYPE_POSTFIX}'
-            raise DYException(f'Invalid configuration structure: Key `{path.upper()}` not present')
+            raise DYInvalidConfigurationException(path)
 
         requested_classname = str(cls.factory_settings.get(cls.TYPE_POSTFIX)).upper()
 
