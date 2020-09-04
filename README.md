@@ -57,7 +57,7 @@ class PushService(NotificationService):
 
 
 if __name__ == '__main__':
-    notification_service = NotificationService(settings_files=['./tests/settings.toml'])
+    notification_service = NotificationService(settings_files=['settings.toml'])
 
     assert isinstance(notification_service, PushService)
     assert notification_service.send_notification()
