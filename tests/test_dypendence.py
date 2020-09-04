@@ -112,5 +112,5 @@ def test_init_from_file():
     notification_service = NotificationService(settings_files=['./tests/settings.toml'])
 
     assert isinstance(notification_service, PushService)
-    assert notification_service.send_notification()
+    assert notification_service.send_notification() == 'Sent Push Notification'
     assert notification_service.settings.some_value == 'This is PushService'
