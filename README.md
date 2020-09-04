@@ -10,17 +10,14 @@ Dependency Injection over Dynaconf
 Example `settings.toml`
 
 ```toml
-[DY.NotificationService]
-Type = "PushService"
+[DY.FileStorageService]
+Type = "S3FileStorage"
 
-[DY.NotificationService.SMSService]
-some_value = "This is SMSService"
+[DY.FileStorageService.LocalFileStorage]
+some_value = "This is Local File Storage"
 
-[DY.NotificationService.EmailService]
-some_value = "This is EmailService"
-
-[DY.NotificationService.PushService]
-some_value = "This is PushService"
+[DY.FileStorageService.S3FileStorage]
+some_value = "This is S3 File Storage"
 ```
 
 Example application code:
@@ -29,37 +26,31 @@ Example application code:
 from dypendence import DY
 
 
-class NotificationService(DY):
+class FileStorageService(DY):
 
-    def send_notification(self) -> str:
+    def save_file(self) -> str:
         raise NotImplementedError
     
     def get_value_from_settings(self):
         return self.settings.some_value
 
 
-class SMSService(NotificationService):
+class LocalFileStorage(FileStorageService):
 
-    def send_notification(self) -> str:
-        return 'Sent SMS Notification'
-
-
-class EmailService(NotificationService):
-
-    def send_notification(self) -> str:
-        return 'Sent Email Notification'
+    def save_file(self) -> str:
+        return 'Saved file to local file system'
 
 
-class PushService(NotificationService):
+class S3FileStorage(FileStorageService):
 
-    def send_notification(self) -> str:
-        return 'Sent Push Notification'
+    def save_file(self) -> str:
+        return 'Saved file to S3-like storage'
 
 
 if __name__ == '__main__':
-    notification_service = NotificationService(settings_files=['settings.toml'])
+    file_storage = FileStorageService(settings_files=['settings.toml'])
 
-    assert isinstance(notification_service, PushService)
-    assert notification_service.send_notification()
-    assert notification_service.get_value_from_settings() == 'This is PushService'
+    assert isinstance(file_storage, S3FileStorage)
+    assert file_storage.save_file() == 'Saved file to S3-like storage'
+    assert file_storage.get_value_from_settings() == 'This is S3 File Storage'
 ```
