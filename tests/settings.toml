@@ -1,8 +1,11 @@
-[DY.some_path]
-type = "Buzz"
+[DY.NotificationService]
+Type = "PushService"
 
-[DY.some_path.Buzz]
-some_value = "Buzz from settings file"
+[DY.NotificationService.SMSService]
+some_value = "This is SMSService"
 
-[DY.some_path.Fizz]
-some_value = "Fizz from settings file"
+[DY.NotificationService.EmailService]
+some_value = "This is EmailService"
+
+[DY.NotificationService.PushService]
+some_value = "This is PushService"

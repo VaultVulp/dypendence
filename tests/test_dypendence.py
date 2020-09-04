@@ -105,12 +105,12 @@ def test_invalid_configuration_exception(monkeypatch):
     with pytest.raises(DYInvalidConfigurationException) as raised_exception:
         FizzBuzz(loaders=['dynaconf.loaders.env_loader'])
 
-    assert 'Invalid configuration structure: Key `DY.SOME_PATH.TYPE` is not present' == str(raised_exception.value)
+    assert 'Invalid configuration structure: Key `DY.SOME_PATH.Type` is not present' == str(raised_exception.value)
 
 
 def test_init_from_file():
-    buzz = FizzBuzz(settings_files=['./tests/settings.toml'])
+    notification_service = NotificationService(settings_files=['./tests/settings.toml'])
 
-    assert isinstance(buzz, Buzz)
-    assert buzz.value == 'Buzz Value'
-    assert buzz.value_from_settings == 'Buzz from settings file'
+    assert isinstance(notification_service, PushService)
+    assert notification_service.send_notification()
+    assert notification_service.settings.some_value == 'This is PushService'

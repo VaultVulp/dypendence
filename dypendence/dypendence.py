@@ -1,5 +1,3 @@
-from pprint import pprint
-
 from dynaconf import Dynaconf
 from dynaconf.utils.boxing import DynaBox
 
@@ -11,7 +9,7 @@ class DYException(Exception):
 class DYInvalidConfigurationException(DYException):
 
     def __init__(self, required_path: str):
-        super().__init__(f'Invalid configuration structure: Key `{required_path.upper()}` is not present')
+        super().__init__(f'Invalid configuration structure: Key `{required_path}` is not present')
 
 
 class DYNotFoundException(DYException):
@@ -21,9 +19,9 @@ class DYNotFoundException(DYException):
 
 
 class DY:
-    GLOBAL_PREFIX: str = 'dy'
+    GLOBAL_PREFIX: str = 'DY'
     FACTORY_PREFIX: str = None
-    TYPE_POSTFIX: str = 'type'
+    TYPE_POSTFIX: str = 'Type'
 
     global_settings: Dynaconf = None
     factory_settings: DynaBox = None
@@ -34,10 +32,9 @@ class DY:
 
     def __new__(cls, **dynaconf_kwargs):
         cls.global_settings: Dynaconf = Dynaconf(**dynaconf_kwargs)
-        cls.factory_settings: DynaBox = cls.global_settings.get(f'{cls.GLOBAL_PREFIX}.{cls.FACTORY_PREFIX}')
+        cls.factory_settings: DynaBox = cls.global_settings.get(f'{cls.GLOBAL_PREFIX}', {}).get(f'{cls.FACTORY_PREFIX}')
 
         if cls.factory_settings is None:
-            pprint(dict(cls.global_settings))
             path = f'{cls.GLOBAL_PREFIX}.{cls.FACTORY_PREFIX}'
             raise DYInvalidConfigurationException(path)
 

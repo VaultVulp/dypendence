@@ -10,14 +10,17 @@ Dependency Injection over Dynaconf
 Example `settings.toml`
 
 ```toml
-[DY.some_path]
-type = "Buzz"
+[DY.NotificationService]
+Type = "PushService"
 
-[DY.some_path.Buzz]
-some_value = "Buzz from settings file"
+[DY.NotificationService.SMSService]
+some_value = "This is SMSService"
 
-[DY.some_path.Fizz]
-some_value = "Fizz from settings file"
+[DY.NotificationService.EmailService]
+some_value = "This is EmailService"
+
+[DY.NotificationService.PushService]
+some_value = "This is PushService"
 ```
 
 Example application code:
@@ -25,35 +28,35 @@ Example application code:
 ```python
 from dypendence import DY
 
-class FizzBuzz(DY):
-    FACTORY_PREFIX = 'SOME_PATH'
 
-    @property
-    def value(self) -> str:
+class NotificationService(DY):
+
+    def send_notification(self) -> str:
         raise NotImplementedError
 
-    @property
-    def value_from_settings(self) -> str:
-        return str(self.settings.some_value)
+
+class SMSService(NotificationService):
+
+    def send_notification(self) -> str:
+        return 'Sent SMS Notification'
 
 
-class Buzz(FizzBuzz):
+class EmailService(NotificationService):
 
-    @property
-    def value(self) -> str:
-        return 'Buzz Value'
+    def send_notification(self) -> str:
+        return 'Sent Email Notification'
 
 
-class Fizz(FizzBuzz):
+class PushService(NotificationService):
 
-    @property
-    def value(self) -> str:
-        return 'Fizz Value'
-    
+    def send_notification(self) -> str:
+        return 'Sent Push Notification'
+
+
 if __name__ == '__main__':
-    buzz = FizzBuzz(settings_files=['./tests/settings.toml'])
+    notification_service = NotificationService(settings_files=['./tests/settings.toml'])
 
-    assert isinstance(buzz, Buzz)
-    assert buzz.value == 'Buzz Value'
-    assert buzz.value_from_settings == 'Buzz from settings file'
+    assert isinstance(notification_service, PushService)
+    assert notification_service.send_notification()
+    assert notification_service.settings.some_value == 'This is PushService'
 ```
