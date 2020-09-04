@@ -33,6 +33,9 @@ class NotificationService(DY):
 
     def send_notification(self) -> str:
         raise NotImplementedError
+    
+    def get_value_from_settings(self):
+        return self.settings.some_value
 
 
 class SMSService(NotificationService):
@@ -58,5 +61,5 @@ if __name__ == '__main__':
 
     assert isinstance(notification_service, PushService)
     assert notification_service.send_notification()
-    assert notification_service.settings.some_value == 'This is PushService'
+    assert notification_service.get_value_from_settings() == 'This is PushService'
 ```
