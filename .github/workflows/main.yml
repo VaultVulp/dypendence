@@ -61,8 +61,15 @@ jobs:
     - name: Upload badge
       if: github.ref == 'refs/heads/develop'
       run: |
-        make publish-badge
+        make badge
       env:
         MINIO_HOST: ${{ secrets.MINIO_HOST }}
         MINIO_KEY: ${{ secrets.MINIO_KEY }}
         MINIO_SECRET: ${{ secrets.MINIO_SECRET }}
+
+    - name: Publish release
+      if: github.ref == 'refs/heads/develop'
+      run: |
+        make publish
+      env:
+        PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
