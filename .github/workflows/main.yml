@@ -21,20 +21,20 @@ jobs:
       uses: actions/cache@v1
       with:
         path: ~/.cache/pip
-        key: ${{ runner.os }}-pip-${{ hashFiles('**/Pipfile.lock') }}
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/poetry.lock') }}
 
     - name: Get pipenv cache
       uses: actions/cache@v1
       with:
         path: ~/.cache/pipenv
-        key: ${{ runner.os }}-pipenv-${{ hashFiles('**/Pipfile.lock') }}
+        key: ${{ runner.os }}-pipenv-${{ hashFiles('**/poetry.lock') }}
 
     - name: Get venv cache
       uses: actions/cache@v1
       id: cache
       with:
         path: ./.venv
-        key: ${{ runner.os }}-venv-${{ hashFiles('**/Pipfile.lock') }}
+        key: ${{ runner.os }}-venv-${{ hashFiles('**/poetry.lock') }}
 
     - name: Set up environment
       run: |
