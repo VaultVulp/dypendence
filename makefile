@@ -26,11 +26,13 @@ reformat-files: fix-yapf fix-isort
 check-code-style: check-isort check-yapf
 	poetry run flake8 dypendence
 
-make-badge:
+badge:
 	poetry run coverage-badge -o ./coverage.svg
+	poetry run s3cmd -P -s --mime-type=image/svg+xml --host=$$MINIO_HOST --host-bucket=$$MINIO_HOST --access_key=$$MINIO_KEY --secret_key=$$MINIO_SECRET --signature-v2 --no-check-certificate --check-hostname put ./coverage.svg s3://coverage/$${GITHUB_REPOSITORY}/coverage.svg
 
 release:
 	git checkout develop
+	git pull
 	make test
 	make check-fixtures
 	make check-code-style
@@ -41,4 +43,4 @@ release:
 	git flow release finish -m "v$$(poetry version --short)" -F -D -p
 
 publish:
-	poetry publish --build
+	poetry publish --build --username=__token__ --password=$$PYPI_TOKEN
