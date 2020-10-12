@@ -37,8 +37,8 @@ release:
 	poetry version patch
 	git add pyproject.toml
 	git commit -m "Bump version"
-	git flow release start -F "$$(poetry version --short)"
-	git flow release finish -m "$$(poetry version --short)" -F -D -p
+	git flow release start -F "v$$(poetry version --short)"
+	git flow release finish -m "v$$(poetry version --short)" -F -D -p
 
 publish:
 	poetry publish --build
