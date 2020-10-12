@@ -25,9 +25,6 @@ check-code-style: check-isort check-yapf
 make-badge:
 	poetry run coverage-badge -o ./coverage.svg
 
-build:
-	poetry build
-
 reformat-files: fix-yapf fix-isort
 
 all: fix-isort fix-yapf check-code-style test check-fixtures
