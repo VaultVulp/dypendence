@@ -68,7 +68,7 @@ jobs:
         MINIO_SECRET: ${{ secrets.MINIO_SECRET }}
 
     - name: Publish release
-      if: github.ref == 'refs/heads/develop'
+      if: github.ref == 'refs/heads/master'
       run: |
         make publish
       env:
