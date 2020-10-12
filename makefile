@@ -29,6 +29,9 @@ check-code-style: check-isort check-yapf
 make-badge:
 	poetry run coverage-badge -o ./coverage.svg
 
+publish-badge: make-badge
+	poetry run s3cmd -P -s --mime-type=image/svg+xml --host=$$MINIO_HOST --host-bucket=$$MINIO_HOST --access_key=$$MINIO_KEY --secret_key=$$MINIO_SECRET --signature-v2 --no-check-certificate --check-hostname put ./coverage.svg s3://coverage/$${GITHUB_REPOSITORY}/coverage.svg
+
 release:
 	git checkout develop
 	make test

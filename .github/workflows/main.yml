@@ -61,8 +61,7 @@ jobs:
     - name: Upload badge
       if: github.ref == 'refs/heads/develop'
       run: |
-        make make-badge
-        poetry run s3cmd -P -s --mime-type=image/svg+xml --host=$MINIO_HOST --host-bucket=$MINIO_HOST --access_key=$MINIO_KEY --secret_key=$MINIO_SECRET --signature-v2 --no-check-certificate --check-hostname put ./coverage.svg s3://coverage/${GITHUB_REPOSITORY}/coverage.svg
+        make publish-badge
       env:
         MINIO_HOST: ${{ secrets.MINIO_HOST }}
         MINIO_KEY: ${{ secrets.MINIO_KEY }}
