@@ -6,9 +6,6 @@ jobs:
   check-and-test:
     runs-on: ubuntu-latest
 
-    env:
-      PIPENV_VENV_IN_PROJECT: 1
-
     steps:
     - uses: actions/checkout@v2
 
@@ -17,25 +14,6 @@ jobs:
       with:
         python-version: 3.8
 
-    - name: Get pip cache
-      uses: actions/cache@v1
-      with:
-        path: ~/.cache/pip
-        key: ${{ runner.os }}-pip-${{ hashFiles('**/poetry.lock') }}
-
-    - name: Get pipenv cache
-      uses: actions/cache@v1
-      with:
-        path: ~/.cache/pipenv
-        key: ${{ runner.os }}-pipenv-${{ hashFiles('**/poetry.lock') }}
-
-    - name: Get venv cache
-      uses: actions/cache@v1
-      id: cache
-      with:
-        path: ./.venv
-        key: ${{ runner.os }}-venv-${{ hashFiles('**/poetry.lock') }}
-
     - name: Set up environment
       run: |
         git status
@@ -43,7 +21,6 @@ jobs:
         pip install -U poetry
 
     - name: Install dependencies
-      if: steps.cache.outputs.cache-hit != 'true'
       run: |
         poetry install
 
