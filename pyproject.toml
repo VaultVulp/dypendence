@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "dypendence"
-version = "0.1.3"
+version = "0.1.5"
 description = "Dependency Injection over Dynaconf"
 authors = ["VaultVulp <me@vaultvulp.dev>"]
 license = "MIT"
