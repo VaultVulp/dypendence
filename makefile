@@ -32,6 +32,7 @@ badge:
 
 release:
 	git checkout develop
+	git pull
 	make test
 	make check-fixtures
 	make check-code-style
