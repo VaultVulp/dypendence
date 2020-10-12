@@ -1,3 +1,5 @@
+main: fix-isort fix-yapf check-code-style test check-fixtures
+
 test:
 	poetry run py.test --ff --cov dypendence
 
@@ -19,12 +21,24 @@ check-isort:
 fix-isort:
 	poetry run isort dypendence
 
+reformat-files: fix-yapf fix-isort
+
 check-code-style: check-isort check-yapf
 	poetry run flake8 dypendence
 
 make-badge:
 	poetry run coverage-badge -o ./coverage.svg
 
-reformat-files: fix-yapf fix-isort
+release:
+	git checkout develop
+	make test
+	make check-fixtures
+	make check-code-style
+	poetry version patch
+	git add pyproject.toml
+	git commit -m "Bump version"
+	git flow release start -F "$$(poetry version --short)"
+	git flow release finish -m "$$(poetry version --short)" -F -D -p
 
-all: fix-isort fix-yapf check-code-style test check-fixtures
+publish:
+	poetry publish --build
