@@ -40,22 +40,24 @@ jobs:
       run: |
         git status
         python -m pip install --upgrade pip
-        pip install -U pipenv
+        pip install -U poetry
 
     - name: Install dependencies
       if: steps.cache.outputs.cache-hit != 'true'
-      run: pipenv install --dev --deploy
+      run: |
+        poetry install
 
     - name: Reformat files
       run: |
-        pipenv run fix-isort
-        pipenv run fix-yapf
+        make reformat-files
 
     - name: Check code style
-      run: pipenv run check-code-style
+      run: |
+        make check-code-style
 
     - name: Run tests
-      run: pipenv run test --html=report.html --self-contained-html
+      run: |
+        make test-report
 
     - if: always()
       name: Upload pytest report
@@ -65,7 +67,8 @@ jobs:
         path: report.html
 
     - name: Check fixtures
-      run: pipenv run check-fixtures
+      run: |
+        make check-fixtures
 
     - name: Config git
       run: |
@@ -81,8 +84,8 @@ jobs:
     - name: Upload badge
       if: github.ref == 'refs/heads/develop'
       run: |
-        pipenv run make-badge
-        pipenv run s3cmd -P -s --mime-type=image/svg+xml --host=$MINIO_HOST --host-bucket=$MINIO_HOST --access_key=$MINIO_KEY --secret_key=$MINIO_SECRET --signature-v2 --no-check-certificate --check-hostname put ./coverage.svg s3://coverage/${GITHUB_REPOSITORY}/coverage.svg
+        make make-badge
+        poetry run s3cmd -P -s --mime-type=image/svg+xml --host=$MINIO_HOST --host-bucket=$MINIO_HOST --access_key=$MINIO_KEY --secret_key=$MINIO_SECRET --signature-v2 --no-check-certificate --check-hostname put ./coverage.svg s3://coverage/${GITHUB_REPOSITORY}/coverage.svg
       env:
         MINIO_HOST: ${{ secrets.MINIO_HOST }}
         MINIO_KEY: ${{ secrets.MINIO_KEY }}
